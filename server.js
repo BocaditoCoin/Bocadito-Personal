@@ -502,6 +502,120 @@ app.get('/', (req, res) => {
       renderHorarios();
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // EXPORTACIÓN CSV/XLS - CUMPLIMIENTO LEGAL INSPECCIÓN DE TRABAJO
+    // ═══════════════════════════════════════════════════════════════
+    
+    function exportarCSV() {
+      const nombresEnNomina = empleadosData.map(e => e['Nombre completo']?.toLowerCase());
+      const horariosFiltrados = horariosData.filter(h => 
+        nombresEnNomina.some(nombre => h['Nombre empleado']?.toLowerCase().includes(nombre) || nombre?.includes(h['Nombre empleado']?.toLowerCase()))
+      );
+      
+      const sorted = [...horariosFiltrados].sort((a, b) => 
+        new Date(b['Creado en']) - new Date(a['Creado en'])
+      );
+      
+      // Cabecera según requisitos legales
+      const headers = [
+        'Nombre Empleado',
+        'UUID',
+        'Fecha',
+        'Hora Entrada',
+        'Hora Salida',
+        'Duración',
+        'Mes',
+        'Fecha Creación Registro',
+        'Última Modificación',
+        'Notas'
+      ];
+      
+      const rows = sorted.map(h => [
+        h['Nombre empleado'] || '',
+        h['UUID'] || '',
+        h['Fecha'] || '',
+        h['Entrada'] || '',
+        h['Salida'] || '',
+        h['Duracion'] || '',
+        h['Mes'] || '',
+        h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : '',
+        h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : '',
+        (h['Notas'] || '').replace(/\n/g, ' ')
+      ]);
+      
+      const csvContent = [headers, ...rows].map(row => 
+        row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',')
+      ).join('\n');
+      
+      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'horarios_bocadito_' + new Date().toISOString().split('T')[0] + '.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+    
+    function exportarXLS() {
+      const nombresEnNomina = empleadosData.map(e => e['Nombre completo']?.toLowerCase());
+      const horariosFiltrados = horariosData.filter(h => 
+        nombresEnNomina.some(nombre => h['Nombre empleado']?.toLowerCase().includes(nombre) || nombre?.includes(h['Nombre empleado']?.toLowerCase()))
+      );
+      
+      const sorted = [...horariosFiltrados].sort((a, b) => 
+        new Date(b['Creado en']) - new Date(a['Creado en'])
+      );
+      
+      // Crear tabla HTML para Excel
+      let tableHTML = \`
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+        <head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+        <x:Name>Horarios Bocadito</x:Name>
+        <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+        <body>
+        <table border="1">
+          <tr style="background-color: #00A0E3; color: white; font-weight: bold;">
+            <th>Nombre Empleado</th>
+            <th>UUID</th>
+            <th>Fecha</th>
+            <th>Hora Entrada</th>
+            <th>Hora Salida</th>
+            <th>Duración</th>
+            <th>Mes</th>
+            <th>Fecha Creación</th>
+            <th>Última Modificación</th>
+            <th>Notas</th>
+          </tr>
+      \`;
+      
+      sorted.forEach(h => {
+        tableHTML += \`
+          <tr>
+            <td>\${h['Nombre empleado'] || ''}</td>
+            <td>\${h['UUID'] || ''}</td>
+            <td>\${h['Fecha'] || ''}</td>
+            <td>\${h['Entrada'] || ''}</td>
+            <td>\${h['Salida'] || ''}</td>
+            <td>\${h['Duracion'] || ''}</td>
+            <td>\${h['Mes'] || ''}</td>
+            <td>\${h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : ''}</td>
+            <td>\${h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : ''}</td>
+            <td>\${(h['Notas'] || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+          </tr>
+        \`;
+      });
+      
+      tableHTML += '</table></body></html>';
+      
+      const blob = new Blob([tableHTML], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'horarios_bocadito_' + new Date().toISOString().split('T')[0] + '.xls';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
     function updateStats() {
       document.getElementById('stat-empleados').textContent = empleadosData.length;
       
