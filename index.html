@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -363,3 +364,16 @@
       );
       
       const today = new Date().toISOString().split('T')[0];
+      const registrosHoy = horariosEnNomina.filter(h => h['Fecha']?.startsWith(today)).length;
+      document.getElementById('stat-registros').textContent = registrosHoy;
+      
+      document.getElementById('stat-fecha').textContent = new Date().toLocaleString('es-ES');
+    }
+
+    // Auto-refresh cada 30 segundos
+    loadData();
+    setInterval(loadData, 30000);
+  </script>
+</body>
+</html>
+  
