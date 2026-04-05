@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/api/empleados", "destination": "/api/empleados" },
+    { "source": "/api/horarios", "destination": "/api/horarios" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
