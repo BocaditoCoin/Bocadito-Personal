@@ -1,0 +1,388 @@
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+
+const app = express();
+const PORT = 5181;
+
+const BASEROW_API = 'https://api.baserow.io/api';
+const AUTH_TOKEN = 'vZlkbz5gL9rL8J0eeuOZVDedcQ9oik3M';
+
+// Tablas
+const EMPLEADOS_TABLE = '750037';
+const HORARIOS_TABLE = '749797';
+const HORAS_EXTRAS_TABLE = '739056';
+
+app.use(cors());
+app.use(express.json());
+
+// Servir archivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
+
+// API: Obtener empleados en nómina
+app.get('/api/empleados', async (req, res) => {
+  try {
+    const response = await fetch(`${BASEROW_API}/database/rows/table/${EMPLEADOS_TABLE}/?user_field_names=true&size=100`, {
+      headers: { 'Authorization': `Token ${AUTH_TOKEN}` }
+    });
+    const data = await response.json();
+    
+    // Filtrar empleados activos/en nómina
+    const empleados = (data.results || []).filter(e => 
+      e['Estado']?.toLowerCase().includes('nómina') ||
+      e['Estado']?.toLowerCase().includes('activo') ||
+      e['Estado actual laboral']?.toLowerCase().includes('nómina')
+    );
+    
+    res.json({ success: true, empleados });
+  } catch (error) {
+    console.error('Error fetching empleados:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API: Obtener horarios
+app.get('/api/horarios', async (req, res) => {
+  try {
+    const response = await fetch(`${BASEROW_API}/database/rows/table/${HORARIOS_TABLE}/?user_field_names=true&size=200`, {
+      headers: { 'Authorization': `Token ${AUTH_TOKEN}` }
+    });
+    const data = await response.json();
+    res.json({ success: true, horarios: data.results || [] });
+  } catch (error) {
+    console.error('Error fetching horarios:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API: Obtener horas extras
+app.get('/api/horas-extras', async (req, res) => {
+  try {
+    const response = await fetch(`${BASEROW_API}/database/rows/table/${HORAS_EXTRAS_TABLE}/?user_field_names=true&size=100`, {
+      headers: { 'Authorization': `Token ${AUTH_TOKEN}` }
+    });
+    const data = await response.json();
+    res.json({ success: true, horasExtras: data.results || [] });
+  } catch (error) {
+    console.error('Error fetching horas extras:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Página principal
+app.get('/', (req, res) => {
+  res.send(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bocadito - Panel de Personal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --neon-blue: #00A0E3;
+      --neon-pink: #FF007F;
+      --dark-bg: #0a0a0a;
+    }
+    body { 
+      font-family: 'Space Grotesk', sans-serif; 
+      background: var(--dark-bg);
+    }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .glow-blue { 
+      text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue); 
+    }
+    .border-glow-blue {
+      box-shadow: 0 0 15px rgba(0, 160, 227, 0.3);
+    }
+    .card {
+      background: linear-gradient(145deg, #111 0%, #0a0a0a 100%);
+      border: 1px solid rgba(0, 160, 227, 0.3);
+    }
+    .card:hover {
+      border-color: rgba(0, 160, 227, 0.6);
+      box-shadow: 0 0 30px rgba(0, 160, 227, 0.2);
+    }
+    .status-active {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      color: #22c55e;
+    }
+    .status-inactive {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #ef4444;
+    }
+    .animate-pulse-slow {
+      animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+      opacity: 0.5;
+      animation: scan 3s linear infinite;
+      pointer-events: none;
+      z-index: 100;
+    }
+    @keyframes scan {
+      0% { top: 0; }
+      100% { top: 100vh; }
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white">
+  <div class="scanline"></div>
+  
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-[#00A0E3]/30">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 bg-[#00A0E3] rounded-full flex items-center justify-center text-xl">
+            👥
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold glow-blue tracking-tight">BOCADITO</h1>
+            <p class="text-xs font-mono text-[#00A0E3]/70 tracking-wider">PANEL_DE_PERSONAL</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span class="text-xs font-mono text-green-400">SISTEMA_ACTIVO</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Summary -->
+  <div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="card p-4 rounded-lg">
+        <div class="text-xs font-mono text-[#00A0E3]/70 mb-1">EMPLEADOS_EN_NÓMINA</div>
+        <div id="stat-empleados" class="text-3xl font-bold glow-blue">--</div>
+      </div>
+      <div class="card p-4 rounded-lg">
+        <div class="text-xs font-mono text-[#00A0E3]/70 mb-1">REGISTROS_HOY</div>
+        <div id="stat-registros" class="text-3xl font-bold glow-blue">--</div>
+      </div>
+      <div class="card p-4 rounded-lg">
+        <div class="text-xs font-mono text-[#00A0E3]/70 mb-1">ACTUALIZADO</div>
+        <div id="stat-fecha" class="text-lg font-mono text-white/70">--</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-6 border-b border-white/10 pb-4">
+      <button onclick="showTab('empleados')" id="tab-empleados" class="px-6 py-2 font-bold text-sm uppercase tracking-wider bg-[#00A0E3] text-white rounded-t-lg transition-all">
+        Empleados
+      </button>
+      <button onclick="showTab('horarios')" id="tab-horarios" class="px-6 py-2 font-bold text-sm uppercase tracking-wider bg-white/5 text-white/50 rounded-t-lg hover:bg-white/10 transition-all">
+        Horarios
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div id="content-empleados" class="tab-content">
+      <div id="empleados-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="card p-8 rounded-lg text-center">
+          <div class="text-4xl mb-4">⏳</div>
+          <p class="font-mono text-sm text-white/50">Cargando empleados...</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="content-horarios" class="tab-content hidden">
+      <div id="horarios-list" class="overflow-x-auto">
+        <div class="card p-8 rounded-lg text-center">
+          <div class="text-4xl mb-4">⏳</div>
+          <p class="font-mono text-sm text-white/50">Cargando horarios...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="fixed bottom-0 left-0 right-0 bg-black/90 border-t border-[#00A0E3]/30 py-3">
+    <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
+      <p class="text-xs font-mono text-white/30">BOCADITO_PERSONAL_v1.0 | Baserow Connected</p>
+      <p class="text-xs font-mono text-[#00A0E3]">Plaza de la Alameda, 22 - Coín</p>
+    </div>
+  </footer>
+
+  <script>
+    // Variables globales
+    let empleadosData = [];
+    let horariosData = [];
+
+    // Cambiar tabs
+    function showTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('[id^="tab-"]').forEach(el => {
+        el.classList.remove('bg-[#00A0E3]', 'text-white');
+        el.classList.add('bg-white/5', 'text-white/50');
+      });
+      
+      document.getElementById('content-' + tab).classList.remove('hidden');
+      document.getElementById('tab-' + tab).classList.add('bg-[#00A0E3]', 'text-white');
+      document.getElementById('tab-' + tab).classList.remove('bg-white/5', 'text-white/50');
+    }
+
+    // Cargar datos
+    async function loadData() {
+      try {
+        // Cargar empleados
+        const empRes = await fetch('/api/empleados');
+        const empData = await empRes.json();
+        empleadosData = empData.empleados || [];
+        renderEmpleados();
+        
+        // Cargar horarios
+        const horRes = await fetch('/api/horarios');
+        const horData = await horRes.json();
+        horariosData = horData.horarios || [];
+        renderHorarios();
+        
+        // Actualizar stats
+        updateStats();
+        
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    }
+
+    function renderEmpleados() {
+      const container = document.getElementById('empleados-list');
+      
+      if (empleadosData.length === 0) {
+        container.innerHTML = '<div class="card p-8 rounded-lg text-center col-span-full"><p class="font-mono text-white/50">No hay empleados en nómina</p></div>';
+        return;
+      }
+      
+      container.innerHTML = empleadosData.map(emp => {
+        const foto = emp['Foto Perfil']?.[0]?.url || '';
+        const estado = emp['Estado'] || emp['Estado actual laboral'] || 'Activo';
+        const isActive = estado.toLowerCase().includes('activo') || estado.toLowerCase().includes('nómina');
+        
+        return \`
+          <div class="card p-6 rounded-lg transition-all duration-300">
+            <div class="flex items-start gap-4">
+              <div class="w-16 h-16 rounded-full overflow-hidden bg-[#00A0E3]/20 flex-shrink-0 border-2 border-[#00A0E3]/50">
+                \${foto ? '<img src="' + foto + '" class="w-full h-full object-cover" alt="Foto">' : '<div class="w-full h-full flex items-center justify-center text-2xl">👤</div>'}
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-lg text-white truncate">\${emp['Nombre completo'] || 'Sin nombre'}</h3>
+                <p class="font-mono text-[10px] text-[#FF007F]/70 truncate" title="\${emp['UUID'] || ''}">UUID: \${emp['UUID']?.substring(0,18) || '---'}...</p>
+                <p class="font-mono text-xs text-[#00A0E3]/70 mt-1">\${emp['Telefono'] || 'Sin teléfono'}</p>
+                <div class="mt-2 flex items-center gap-2">
+                  <span class="px-2 py-1 text-xs font-mono rounded \${isActive ? 'status-active' : 'status-inactive'}">
+                    \${estado}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white/10">
+              <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                <div>
+                  <span class="text-white/40">DNI:</span>
+                  <span class="text-white/70 ml-1">\${emp['DNI']?.substring(0,12) || '---'}...</span>
+                </div>
+                <div>
+                  <span class="text-white/40">Email:</span>
+                  <span class="text-[#00A0E3] ml-1 truncate">\${emp['Email'] || '---'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        \`;
+      }).join('');
+    }
+
+    function renderHorarios() {
+      const container = document.getElementById('horarios-list');
+      
+      // Filtrar horarios solo de empleados en nómina
+      const nombresEnNomina = empleadosData.map(e => e['Nombre completo']?.toLowerCase());
+      const horariosFiltrados = horariosData.filter(h => 
+        nombresEnNomina.some(nombre => h['Nombre empleado']?.toLowerCase().includes(nombre) || nombre?.includes(h['Nombre empleado']?.toLowerCase()))
+      );
+      
+      if (horariosFiltrados.length === 0) {
+        container.innerHTML = '<div class="card p-8 rounded-lg text-center"><p class="font-mono text-white/50">No hay horarios registrados para empleados en nómina</p></div>';
+        return;
+      }
+      
+      // Ordenar por fecha más reciente
+      const sorted = [...horariosFiltrados].sort((a, b) => new Date(b['Fecha']) - new Date(a['Fecha']));
+      
+      container.innerHTML = \`
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-white/10">
+              <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Empleado</th>
+              <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">UUID</th>
+              <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Fecha</th>
+              <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Entrada</th>
+              <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Salida</th>
+              <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Duración</th>
+              <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Creado</th>
+              <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Actualizado</th>
+              <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Notas</th>
+            </tr>
+          </thead>
+          <tbody>
+            \${sorted.map(h => \`
+              <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                <td class="py-3 px-4 font-bold text-white">\${h['Nombre empleado'] || '---'}</td>
+                <td class="py-3 px-4 font-mono text-xs text-[#FF007F]/70 max-w-[100px] truncate" title="\${h['UUID'] || ''}">\${h['UUID']?.substring(0,8) || '---'}...</td>
+                <td class="py-3 px-4 font-mono text-sm text-white/70">\${h['Fecha'] || '---'}</td>
+                <td class="py-3 px-4 font-mono text-sm text-green-400">\${h['Entrada'] || '---'}</td>
+                <td class="py-3 px-4 font-mono text-sm text-red-400">\${h['Salida'] || '---'}</td>
+                <td class="py-3 px-4 font-mono text-sm text-[#00A0E3]">\${h['Duracion'] || '---'}</td>
+                <td class="py-3 px-4 font-mono text-xs text-white/50">\${h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : '---'}</td>
+                <td class="py-3 px-4 font-mono text-xs text-yellow-400/70">\${h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : '---'}</td>
+                <td class="py-3 px-4 font-mono text-xs text-white/50 max-w-xs truncate">\${h['Notas'] || ''}</td>
+              </tr>
+            \`).join('')}
+          </tbody>
+        </table>
+      \`;
+    }
+
+    function updateStats() {
+      document.getElementById('stat-empleados').textContent = empleadosData.length;
+      
+      // Filtrar horarios de empleados en nómina
+      const nombresEnNomina = empleadosData.map(e => e['Nombre completo']?.toLowerCase());
+      const horariosEnNomina = horariosData.filter(h => 
+        nombresEnNomina.some(nombre => h['Nombre empleado']?.toLowerCase().includes(nombre) || nombre?.includes(h['Nombre empleado']?.toLowerCase()))
+      );
+      
+      const today = new Date().toISOString().split('T')[0];
+      const registrosHoy = horariosEnNomina.filter(h => h['Fecha']?.startsWith(today)).length;
+      document.getElementById('stat-registros').textContent = registrosHoy;
+      
+      document.getElementById('stat-fecha').textContent = new Date().toLocaleString('es-ES');
+    }
+
+    // Auto-refresh cada 30 segundos
+    loadData();
+    setInterval(loadData, 30000);
+  </script>
+</body>
+</html>
+  `);
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Bocadito Personal running on http://0.0.0.0:${PORT}`);
+});
