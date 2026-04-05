@@ -1,4 +1,8 @@
-export default async function handler(req, res) {
+const BASEROW_API = 'https://api.baserow.io/api';
+const AUTH_TOKEN = 'vZlkbz5gL9rL8J0eeuOZVDedcQ9oik3M';
+const EMPLEADOS_TABLE = '750037';
+
+module.exports = async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -9,10 +13,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    const BASEROW_API = 'https://api.baserow.io/api';
-    const AUTH_TOKEN = 'vZlkbz5gL9rL8J0eeuOZVDedcQ9oik3M';
-    const EMPLEADOS_TABLE = '750037';
-
     let allEmpleados = [];
     let page = 1;
     let hasMore = true;
@@ -50,4 +50,4 @@ export default async function handler(req, res) {
     console.error('Error:', error);
     return res.status(500).json({ success: false, error: error.message });
   }
-}
+};
