@@ -1,7 +1,12 @@
 {
-  "rewrites": [
-    { "source": "/api/empleados", "destination": "/api/empleados" },
-    { "source": "/api/horarios", "destination": "/api/horarios" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "version": 2,
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "index.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/empleados", "dest": "/api/empleados.js" },
+    { "src": "/api/horarios", "dest": "/api/horarios.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

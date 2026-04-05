@@ -279,15 +279,15 @@
           <div class="card p-6 rounded-lg transition-all duration-300">
             <div class="flex items-start gap-4">
               <div class="w-16 h-16 rounded-full overflow-hidden bg-[#00A0E3]/20 flex-shrink-0 border-2 border-[#00A0E3]/50">
-                \${foto ? '<img src="' + foto + '" class="w-full h-full object-cover" alt="Foto">' : '<div class="w-full h-full flex items-center justify-center text-2xl">👤</div>'}
+                ${foto ? '<img src="' + foto + '" class="w-full h-full object-cover" alt="Foto">' : '<div class="w-full h-full flex items-center justify-center text-2xl">👤</div>'}
               </div>
               <div class="flex-1 min-w-0">
-                <h3 class="font-bold text-lg text-white truncate">\${emp['Nombre completo'] || 'Sin nombre'}</h3>
-                <p class="font-mono text-[10px] text-[#FF007F]/70 truncate" title="\${emp['UUID'] || ''}">UUID: \${emp['UUID']?.substring(0,18) || '---'}...</p>
-                <p class="font-mono text-xs text-[#00A0E3]/70 mt-1">\${emp['Telefono'] || 'Sin teléfono'}</p>
+                <h3 class="font-bold text-lg text-white truncate">${emp['Nombre completo'] || 'Sin nombre'}</h3>
+                <p class="font-mono text-[10px] text-[#FF007F]/70 truncate" title="${emp['UUID'] || ''}">UUID: ${emp['UUID']?.substring(0,18) || '---'}...</p>
+                <p class="font-mono text-xs text-[#00A0E3]/70 mt-1">${emp['Telefono'] || 'Sin teléfono'}</p>
                 <div class="mt-2 flex items-center gap-2">
-                  <span class="px-2 py-1 text-xs font-mono rounded \${isActive ? 'status-active' : 'status-inactive'}">
-                    \${estado}
+                  <span class="px-2 py-1 text-xs font-mono rounded ${isActive ? 'status-active' : 'status-inactive'}">
+                    ${estado}
                   </span>
                 </div>
               </div>
@@ -296,11 +296,11 @@
               <div class="grid grid-cols-2 gap-2 text-xs font-mono">
                 <div>
                   <span class="text-white/40">DNI:</span>
-                  <span class="text-white/70 ml-1">\${emp['DNI']?.substring(0,12) || '---'}...</span>
+                  <span class="text-white/70 ml-1">${emp['DNI']?.substring(0,12) || '---'}...</span>
                 </div>
                 <div>
                   <span class="text-white/40">Email:</span>
-                  <span class="text-[#00A0E3] ml-1 truncate">\${emp['Email'] || '---'}</span>
+                  <span class="text-[#00A0E3] ml-1 truncate">${emp['Email'] || '---'}</span>
                 </div>
               </div>
             </div>
@@ -383,28 +383,28 @@
         
         return \`
           <div class="bg-slate-800/50 rounded-lg border border-[#00A0E3]/30 overflow-hidden mb-4">
-            <button onclick="toggleMonth('\${monthKey}')" class="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-700/50 transition-colors">
+            <button onclick="toggleMonth('${monthKey}')" class="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-700/50 transition-colors">
               <div class="flex items-center gap-4">
                 <span class="text-2xl">📅</span>
                 <div class="text-left">
-                  <h3 class="text-xl font-bold text-[#00A0E3]">\${monthKey}</h3>
-                  <p class="text-sm text-white/50">\${monthHorarios.length} registros • \${totalHoras.toFixed(1)}h total</p>
+                  <h3 class="text-xl font-bold text-[#00A0E3]">${monthKey}</h3>
+                  <p class="text-sm text-white/50">${monthHorarios.length} registros • ${totalHoras.toFixed(1)}h total</p>
                 </div>
               </div>
-              <span class="text-[#00A0E3] text-2xl">\${isExpanded ? '−' : '+'}</span>
+              <span class="text-[#00A0E3] text-2xl">${isExpanded ? '−' : '+'}</span>
             </button>
             
-            \${isExpanded ? \`
+            ${isExpanded ? \`
             <div class="border-t border-[#00A0E3]/20">
               <!-- Resumen por empleado -->
               <div class="p-4 bg-black/20 border-b border-[#00A0E3]/10">
                 <h4 class="font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider mb-3">Horas por empleado</h4>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  \${empleadosOrdenados.map(([nombre, data]) => \`
+                  ${empleadosOrdenados.map(([nombre, data]) => \`
                     <div class="bg-slate-900/50 rounded-lg p-3 border border-white/5">
-                      <p class="font-bold text-white text-sm truncate" title="\${nombre}">\${nombre}</p>
-                      <p class="font-mono text-lg text-[#00A0E3]">\${data.horas.toFixed(1)}h</p>
-                      <p class="font-mono text-xs text-white/40">\${data.registros} registros</p>
+                      <p class="font-bold text-white text-sm truncate" title="${nombre}">${nombre}</p>
+                      <p class="font-mono text-lg text-[#00A0E3]">${data.horas.toFixed(1)}h</p>
+                      <p class="font-mono text-xs text-white/40">${data.registros} registros</p>
                     </div>
                   \`).join('')}
                 </div>
@@ -427,17 +427,17 @@
                     </tr>
                   </thead>
                   <tbody>
-                    \${monthHorarios.map(h => \`
+                    ${monthHorarios.map(h => \`
                       <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td class="py-3 px-4 font-bold text-white">\${h['Nombre empleado'] || '---'}</td>
-                        <td class="py-3 px-4 font-mono text-xs text-[#FF007F]/70 max-w-[100px] truncate" title="\${h['UUID'] || ''}">\${h['UUID']?.substring(0,8) || '---'}...</td>
-                        <td class="py-3 px-4 font-mono text-sm text-white/70">\${h['Fecha'] || '---'}</td>
-                        <td class="py-3 px-4 font-mono text-sm text-green-400">\${h['Entrada'] || '---'}</td>
-                        <td class="py-3 px-4 font-mono text-sm text-red-400">\${h['Salida'] || '---'}</td>
-                        <td class="py-3 px-4 font-mono text-sm text-[#00A0E3]">\${h['Duracion'] || '---'}</td>
-                        <td class="py-3 px-4 font-mono text-xs text-white/50">\${h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : '---'}</td>
-                        <td class="py-3 px-4 font-mono text-xs text-yellow-400/70">\${h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : '---'}</td>
-                        <td class="py-3 px-4 font-mono text-xs text-white/50 max-w-xs truncate">\${h['Notas'] || ''}</td>
+                        <td class="py-3 px-4 font-bold text-white">${h['Nombre empleado'] || '---'}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-[#FF007F]/70 max-w-[100px] truncate" title="${h['UUID'] || ''}">${h['UUID']?.substring(0,8) || '---'}...</td>
+                        <td class="py-3 px-4 font-mono text-sm text-white/70">${h['Fecha'] || '---'}</td>
+                        <td class="py-3 px-4 font-mono text-sm text-green-400">${h['Entrada'] || '---'}</td>
+                        <td class="py-3 px-4 font-mono text-sm text-red-400">${h['Salida'] || '---'}</td>
+                        <td class="py-3 px-4 font-mono text-sm text-[#00A0E3]">${h['Duracion'] || '---'}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-white/50">${h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : '---'}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-yellow-400/70">${h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : '---'}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-white/50 max-w-xs truncate">${h['Notas'] || ''}</td>
                       </tr>
                     \`).join('')}
                   </tbody>
@@ -548,16 +548,16 @@
       sorted.forEach(h => {
         tableHTML += \`
           <tr>
-            <td>\${h['Nombre empleado'] || ''}</td>
-            <td>\${h['UUID'] || ''}</td>
-            <td>\${h['Fecha'] || ''}</td>
-            <td>\${h['Entrada'] || ''}</td>
-            <td>\${h['Salida'] || ''}</td>
-            <td>\${h['Duracion'] || ''}</td>
-            <td>\${h['Mes'] || ''}</td>
-            <td>\${h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : ''}</td>
-            <td>\${h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : ''}</td>
-            <td>\${(h['Notas'] || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+            <td>${h['Nombre empleado'] || ''}</td>
+            <td>${h['UUID'] || ''}</td>
+            <td>${h['Fecha'] || ''}</td>
+            <td>${h['Entrada'] || ''}</td>
+            <td>${h['Salida'] || ''}</td>
+            <td>${h['Duracion'] || ''}</td>
+            <td>${h['Mes'] || ''}</td>
+            <td>${h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : ''}</td>
+            <td>${h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : ''}</td>
+            <td>${(h['Notas'] || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
           </tr>
         \`;
       });
@@ -743,15 +743,15 @@
           <div class="grid grid-cols-3 gap-4 text-center">
             <div>
               <div class="text-xs font-mono text-white/50">TOTAL REGISTROS</div>
-              <div class="text-2xl font-bold text-[#00A0E3]">\${misHorarios.length}</div>
+              <div class="text-2xl font-bold text-[#00A0E3]">${misHorarios.length}</div>
             </div>
             <div>
               <div class="text-xs font-mono text-white/50">HORAS TRABAJADAS</div>
-              <div class="text-2xl font-bold text-[#00A0E3]">\${totalHoras.toFixed(1)}h</div>
+              <div class="text-2xl font-bold text-[#00A0E3]">${totalHoras.toFixed(1)}h</div>
             </div>
             <div>
               <div class="text-xs font-mono text-white/50">MESES</div>
-              <div class="text-2xl font-bold text-[#00A0E3]">\${sortedMonths.length}</div>
+              <div class="text-2xl font-bold text-[#00A0E3]">${sortedMonths.length}</div>
             </div>
           </div>
         </div>
@@ -769,8 +769,8 @@
           <div class="card rounded-lg overflow-hidden mb-4">
             <div class="px-6 py-4 bg-black/30 border-b border-white/10">
               <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold text-[#00A0E3]">\${monthKey}</h3>
-                <span class="font-mono text-sm text-white/50">\${totalHorasMes.toFixed(1)}h</span>
+                <h3 class="text-lg font-bold text-[#00A0E3]">${monthKey}</h3>
+                <span class="font-mono text-sm text-white/50">${totalHorasMes.toFixed(1)}h</span>
               </div>
             </div>
             <div class="overflow-x-auto">
@@ -785,16 +785,16 @@
                   </tr>
                 </thead>
                 <tbody>
-                  \${monthHorarios.map(h => {
+                  ${monthHorarios.map(h => {
                     const pausas = (h['Notas'] || '').match(/INICIO PAUSA: \\d{2}:\\d{2}/g) || [];
                     const pausasCount = pausas.length;
                     return \`
                       <tr class="border-b border-white/5">
-                        <td class="py-2 px-4 font-mono text-sm text-white/70">\${h['Fecha'] || '---'}</td>
-                        <td class="py-2 px-4 font-mono text-sm text-green-400">\${h['Entrada'] || '---'}</td>
-                        <td class="py-2 px-4 font-mono text-sm text-red-400">\${h['Salida'] || '---'}</td>
-                        <td class="py-2 px-4 font-mono text-sm text-[#00A0E3]">\${h['Duracion'] || '---'}</td>
-                        <td class="py-2 px-4 font-mono text-xs text-yellow-400/70">\${pausasCount > 0 ? pausasCount + ' pausa(s)' : '-'}</td>
+                        <td class="py-2 px-4 font-mono text-sm text-white/70">${h['Fecha'] || '---'}</td>
+                        <td class="py-2 px-4 font-mono text-sm text-green-400">${h['Entrada'] || '---'}</td>
+                        <td class="py-2 px-4 font-mono text-sm text-red-400">${h['Salida'] || '---'}</td>
+                        <td class="py-2 px-4 font-mono text-sm text-[#00A0E3]">${h['Duracion'] || '---'}</td>
+                        <td class="py-2 px-4 font-mono text-xs text-yellow-400/70">${pausasCount > 0 ? pausasCount + ' pausa(s)' : '-'}</td>
                       </tr>
                     \`;
                   }).join('')}
