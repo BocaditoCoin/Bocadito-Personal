@@ -193,6 +193,22 @@ app.get('/', (req, res) => {
     </div>
   </header>
 
+  <!-- Botones de exportación (cumplimiento legal RD-Ley 8/2019) -->
+  <div class="max-w-7xl mx-auto px-4 py-4">
+    <div class="flex flex-wrap gap-3">
+      <button onclick="exportarCSV()" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-mono text-xs uppercase tracking-wider rounded transition-colors flex items-center gap-2">
+        📊 Exportar CSV
+      </button>
+      <button onclick="exportarExcel()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs uppercase tracking-wider rounded transition-colors flex items-center gap-2">
+        📗 Exportar Excel
+      </button>
+      <button onclick="window.print()" class="px-4 py-2 bg-[#00A0E3] hover:bg-[#00A0E3]/80 text-white font-mono text-xs uppercase tracking-wider rounded transition-colors flex items-center gap-2">
+        🖨️ Imprimir
+      </button>
+    </div>
+    <p class="text-xs text-white/30 mt-2 font-mono">Cumplimiento RD-Ley 8/2019: Los registros deben conservarse 4 años y estar disponibles para inspección</p>
+  </div>
+
   <!-- Stats Summary -->
   <div class="max-w-7xl mx-auto px-4 py-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -500,6 +516,75 @@ app.get('/', (req, res) => {
       document.getElementById('stat-registros').textContent = registrosHoy;
       
       document.getElementById('stat-fecha').textContent = new Date().toLocaleString('es-ES');
+    }
+
+    // Funciones de exportación (cumplimiento legal)
+    function exportarCSV() {
+      // Filtrar horarios de empleados en nómina
+      const nombresEnNomina = empleadosData.map(e => e['Nombre completo']?.toLowerCase());
+      const horariosFiltrados = horariosData.filter(h => 
+        nombresEnNomina.some(nombre => h['Nombre empleado']?.toLowerCase().includes(nombre) || nombre?.includes(h['Nombre empleado']?.toLowerCase()))
+      );
+      
+      // Crear CSV
+      const headers = ['Empleado', 'UUID', 'Fecha', 'Entrada', 'Salida', 'Duración', 'Creado en', 'Última modificación', 'Notas'];
+      const rows = horariosFiltrados.map(h => [
+        h['Nombre empleado'] || '',
+        h['UUID'] || '',
+        h['Fecha'] || '',
+        h['Entrada'] || '',
+        h['Salida'] || '',
+        h['Duracion'] || '',
+        h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : '',
+        h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : '',
+        h['Notas'] || ''
+      ]);
+      
+      const csvContent = [headers, ...rows].map(row => row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',')).join('\\n');
+      
+      // Descargar
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'horarios_bocadito_' + new Date().toISOString().split('T')[0] + '.csv';
+      link.click();
+    }
+    
+    function exportarExcel() {
+      // Filtrar horarios de empleados en nómina
+      const nombresEnNomina = empleadosData.map(e => e['Nombre completo']?.toLowerCase());
+      const horariosFiltrados = horariosData.filter(h => 
+        nombresEnNomina.some(nombre => h['Nombre empleado']?.toLowerCase().includes(nombre) || nombre?.includes(h['Nombre empleado']?.toLowerCase()))
+      );
+      
+      // Crear tabla HTML para Excel
+      let tableHTML = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>';
+      tableHTML += '<table border="1"><thead><tr>';
+      tableHTML += '<th>Empleado</th><th>UUID</th><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Duración</th><th>Creado en</th><th>Última modificación</th><th>Notas</th>';
+      tableHTML += '</tr></thead><tbody>';
+      
+      horariosFiltrados.forEach(h => {
+        tableHTML += '<tr>';
+        tableHTML += '<td>' + (h['Nombre empleado'] || '') + '</td>';
+        tableHTML += '<td>' + (h['UUID'] || '') + '</td>';
+        tableHTML += '<td>' + (h['Fecha'] || '') + '</td>';
+        tableHTML += '<td>' + (h['Entrada'] || '') + '</td>';
+        tableHTML += '<td>' + (h['Salida'] || '') + '</td>';
+        tableHTML += '<td>' + (h['Duracion'] || '') + '</td>';
+        tableHTML += '<td>' + (h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : '') + '</td>';
+        tableHTML += '<td>' + (h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : '') + '</td>';
+        tableHTML += '<td>' + (h['Notas'] || '') + '</td>';
+        tableHTML += '</tr>';
+      });
+      
+      tableHTML += '</tbody></table></body></html>';
+      
+      // Descargar
+      const blob = new Blob([tableHTML], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'horarios_bocadito_' + new Date().toISOString().split('T')[0] + '.xls';
+      link.click();
     }
 
     // Auto-refresh cada 30 segundos
