@@ -395,6 +395,19 @@ app.get('/', (req, res) => {
           return sum + horas;
         }, 0);
         
+        // Calcular horas por empleado
+        const horasPorEmpleado = {};
+        monthHorarios.forEach(h => {
+          const nombre = h['Nombre empleado'] || 'Sin nombre';
+          if (!horasPorEmpleado[nombre]) horasPorEmpleado[nombre] = { horas: 0, registros: 0 };
+          const duracion = h['Duracion'] || '0h';
+          const horas = parseFloat(duracion.replace('h', '').replace(',', '.')) || 0;
+          horasPorEmpleado[nombre].horas += horas;
+          horasPorEmpleado[nombre].registros++;
+        });
+        
+        const empleadosOrdenados = Object.entries(horasPorEmpleado).sort((a, b) => b[1].horas - a[1].horas);
+        
         return \`
           <div class="bg-slate-800/50 rounded-lg border border-[#00A0E3]/30 overflow-hidden mb-4">
             <button onclick="toggleMonth('\${monthKey}')" class="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-700/50 transition-colors">
@@ -409,37 +422,54 @@ app.get('/', (req, res) => {
             </button>
             
             \${isExpanded ? \`
-            <div class="border-t border-[#00A0E3]/20 overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr class="border-b border-white/10 bg-black/30">
-                    <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Empleado</th>
-                    <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">UUID</th>
-                    <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Fecha</th>
-                    <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Entrada</th>
-                    <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Salida</th>
-                    <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Duración</th>
-                    <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Creado</th>
-                    <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Actualizado</th>
-                    <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Notas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  \${monthHorarios.map(h => \`
-                    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-                      <td class="py-3 px-4 font-bold text-white">\${h['Nombre empleado'] || '---'}</td>
-                      <td class="py-3 px-4 font-mono text-xs text-[#FF007F]/70 max-w-[100px] truncate" title="\${h['UUID'] || ''}">\${h['UUID']?.substring(0,8) || '---'}...</td>
-                      <td class="py-3 px-4 font-mono text-sm text-white/70">\${h['Fecha'] || '---'}</td>
-                      <td class="py-3 px-4 font-mono text-sm text-green-400">\${h['Entrada'] || '---'}</td>
-                      <td class="py-3 px-4 font-mono text-sm text-red-400">\${h['Salida'] || '---'}</td>
-                      <td class="py-3 px-4 font-mono text-sm text-[#00A0E3]">\${h['Duracion'] || '---'}</td>
-                      <td class="py-3 px-4 font-mono text-xs text-white/50">\${h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : '---'}</td>
-                      <td class="py-3 px-4 font-mono text-xs text-yellow-400/70">\${h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : '---'}</td>
-                      <td class="py-3 px-4 font-mono text-xs text-white/50 max-w-xs truncate">\${h['Notas'] || ''}</td>
-                    </tr>
+            <div class="border-t border-[#00A0E3]/20">
+              <!-- Resumen por empleado -->
+              <div class="p-4 bg-black/20 border-b border-[#00A0E3]/10">
+                <h4 class="font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider mb-3">Horas por empleado</h4>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  \${empleadosOrdenados.map(([nombre, data]) => \`
+                    <div class="bg-slate-900/50 rounded-lg p-3 border border-white/5">
+                      <p class="font-bold text-white text-sm truncate" title="\${nombre}">\${nombre}</p>
+                      <p class="font-mono text-lg text-[#00A0E3]">\${data.horas.toFixed(1)}h</p>
+                      <p class="font-mono text-xs text-white/40">\${data.registros} registros</p>
+                    </div>
                   \`).join('')}
-                </tbody>
-              </table>
+                </div>
+              </div>
+              
+              <!-- Tabla detallada -->
+              <div class="overflow-x-auto">
+                <table class="w-full">
+                  <thead>
+                    <tr class="border-b border-white/10 bg-black/30">
+                      <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Empleado</th>
+                      <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">UUID</th>
+                      <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Fecha</th>
+                      <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Entrada</th>
+                      <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Salida</th>
+                      <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Duración</th>
+                      <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Creado</th>
+                      <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Actualizado</th>
+                      <th class="text-left py-3 px-4 font-mono text-xs text-[#00A0E3]/70 uppercase tracking-wider">Notas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    \${monthHorarios.map(h => \`
+                      <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                        <td class="py-3 px-4 font-bold text-white">\${h['Nombre empleado'] || '---'}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-[#FF007F]/70 max-w-[100px] truncate" title="\${h['UUID'] || ''}">\${h['UUID']?.substring(0,8) || '---'}...</td>
+                        <td class="py-3 px-4 font-mono text-sm text-white/70">\${h['Fecha'] || '---'}</td>
+                        <td class="py-3 px-4 font-mono text-sm text-green-400">\${h['Entrada'] || '---'}</td>
+                        <td class="py-3 px-4 font-mono text-sm text-red-400">\${h['Salida'] || '---'}</td>
+                        <td class="py-3 px-4 font-mono text-sm text-[#00A0E3]">\${h['Duracion'] || '---'}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-white/50">\${h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : '---'}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-yellow-400/70">\${h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : '---'}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-white/50 max-w-xs truncate">\${h['Notas'] || ''}</td>
+                      </tr>
+                    \`).join('')}
+                  </tbody>
+                </table>
+              </div>
             </div>
             \` : ''}
           </div>
