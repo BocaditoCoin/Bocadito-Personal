@@ -340,6 +340,8 @@ app.get('/', (req, res) => {
     const getMonthName = (date) => {
       const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
       const d = new Date(date);
+      // Validar que la fecha es válida
+      if (isNaN(d.getTime())) return 'Sin fecha';
       return months[d.getMonth()] + ' ' + d.getFullYear();
     };
 
@@ -360,10 +362,11 @@ app.get('/', (req, res) => {
         return;
       }
       
-      // Agrupar por mes
+      // Agrupar por mes usando "Creado en" (fecha válida) en lugar de "Fecha" (texto incorrecto)
       const grouped = {};
       horariosFiltrados.forEach(h => {
-        const monthKey = getMonthName(h['Fecha']);
+        const fechaValida = h['Creado en'] || h['Última modificación'];
+        const monthKey = getMonthName(fechaValida);
         if (!grouped[monthKey]) grouped[monthKey] = [];
         grouped[monthKey].push(h);
       });
