@@ -437,7 +437,14 @@
                         <td class="py-3 px-4 font-mono text-sm text-[#00A0E3]">${h['Duracion'] || '---'}</td>
                         <td class="py-3 px-4 font-mono text-xs text-white/50">${h['Creado en'] ? new Date(h['Creado en']).toLocaleString('es-ES') : '---'}</td>
                         <td class="py-3 px-4 font-mono text-xs text-yellow-400/70">${h['Última modificación'] ? new Date(h['Última modificación']).toLocaleString('es-ES') : '---'}</td>
-                        <td class="py-3 px-4 font-mono text-xs text-white/50 max-w-xs truncate">${h['Notas'] || ''}</td>
+                        <td class="py-3 px-4 font-mono text-xs text-white/50 max-w-xs">
+                          <input type="text" 
+                            class="bg-transparent border-b border-white/10 text-white/70 text-xs w-full focus:border-[#00A0E3] focus:text-white outline-none transition-colors" 
+                            value="${(h['Notas'] || '').replace(/"/g, '&quot;')}" 
+                            onchange="actualizarNota(${h.id}, this.value)" 
+                            placeholder="Añadir nota..."
+                          />
+                        </td>
                       </tr>
                     `).join('')}
                   </tbody>
@@ -448,6 +455,29 @@
           </div>
         `;
       }).join('');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // ACTUALIZAR NOTA INLINE
+    // ═══════════════════════════════════════════════════════════════
+    
+    async function actualizarNota(rowId, nuevaNota) {
+      try {
+        const res = await fetch(`https://api.baserow.io/api/database/rows/table/749797/${rowId}/?user_field_names=true`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': 'Token vZlkbz5gL9rL8J0eeuOZVDedcQ9oik3M',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 'Notas': nuevaNota })
+        });
+        if (!res.ok) throw new Error('Error actualizando nota');
+        // Actualizar en local
+        const h = horariosData.find(x => x.id === rowId);
+        if (h) h['Notas'] = nuevaNota;
+      } catch (e) {
+        alert('Error guardando nota: ' + e.message);
+      }
     }
 
     function toggleMonth(monthKey) {
