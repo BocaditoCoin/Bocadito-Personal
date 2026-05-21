@@ -295,7 +295,7 @@
         const isActive = estado.toLowerCase().includes('activo') || estado.toLowerCase().includes('nómina');
         
         return `
-          <div class="card p-6 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:border-[#00A0E3]/30 cursor-pointer" onclick="mostrarHorariosEmpleado('${emp['Nombre completo']?.replace(/'/g, "\\'") || ''}')">
+          <div class="card p-6 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:border-[#00A0E3]/30 cursor-pointer" data-empleado-nombre="${emp['Nombre completo'] || ''}" onclick="mostrarHorariosEmpleado(this.dataset.empleadoNombre)">
             <div class="flex items-start gap-4">
               <div class="w-16 h-16 rounded-full overflow-hidden bg-[#00A0E3]/20 flex-shrink-0 border-2 border-[#00A0E3]/50">
                 ${foto ? '<img src="' + foto + '" class="w-full h-full object-cover" alt="Foto">' : '<div class="w-full h-full flex items-center justify-center text-2xl">👤</div>'}
